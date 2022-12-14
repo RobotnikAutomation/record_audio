@@ -52,11 +52,12 @@ def record():
 	path = pathFolder + "/outputAudio_" + date + "." + FORMAT
 
 	# create listener
+	MICROPHONE_RATE = rospy.get_param('~microphone_rate')
 	inp = alsaaudio.PCM(type=alsaaudio.PCM_CAPTURE, device=DEVICE)
 	inp.setchannels(1)
-	inp.setrate(8000)
+	inp.setrate(MICROPHONE_RATE)
 	inp.setformat(alsaaudio.PCM_FORMAT_S16_LE)
-	inp.setperiodsize(100)
+	inp.setperiodsize(1024)
 
 	w = wave.open(path, 'w')
 	w.setnchannels(1)
@@ -92,7 +93,7 @@ if __name__ == '__main__':
 			record()
 
 
-		rospy.sleep(0.001)
+		rospy.sleep(1.0)
 
 
 
