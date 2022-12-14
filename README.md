@@ -4,11 +4,11 @@
 - ROS Melodic
 - Python3
 
-##Description 
+## Description 
 
 Node used to record sound from a device using a rospy node. Work with alsaaudio lib in python3.
 
-##Dependencies
+## Dependencies
 
 -To use this lib, you need to have ROS installed in your computer (http://wiki.ros.org/fr/ROS/Installation).
 -In order to get the alsaaudio you need to download the package ```python3-alsaaudio```:
@@ -16,11 +16,11 @@ Node used to record sound from a device using a rospy node. Work with alsaaudio 
  sudo apt-get install python3-alsaaudio
  ```
 
-##Installation
+## Installation
 
 
 
-##Use 
+## Use 
 
 You can change the Id of your device(s) in the launch file (record_launch.launch). Once done, start the nodes by executing the launch file:
 ```bash
