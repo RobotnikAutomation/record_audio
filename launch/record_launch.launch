@@ -1,0 +1,13 @@
+<launch>
+
+  <arg name="identity" default="default"/>
+  <arg name="device" default="hw:0,0"/>
+  <arg name="format" default="mp3"/>
+
+  <node pkg="record_audio" type="record_audio.py" name="record_audio" output="screen">
+    <param name="device" value="$(arg device)" />
+    <param name="identity" value="$(arg identity)"/>
+     <param name="format" value="$(arg format)"/>
+  </node>
+
+</launch>
