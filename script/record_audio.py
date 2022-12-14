@@ -16,22 +16,19 @@ from std_srvs.srv import Trigger, TriggerResponse
 startRecord = False
 FOLDER_NAME = ""
 
-def callBackEndRecording(request):
+def callBackEndRecording(request): # if comething was publish in this service, stop recording
 	response = TriggerResponse()
 	response.success = True
 	response.message = "Stop recording"
-	# if comething was publish in this topic, stop recording
 	global startRecord 
 	startRecord = False
 	rospy.loginfo(response.message)
-	#rospy.signal_shutdown("Done.")
 	return response
 
-def callBackStartRecording(request):
+def callBackStartRecording(request): # if comething was publish in this service, start recording
 	response = TriggerResponse()
 	response.success = True
 	response.message = "Start recording"
-	# if comething was publish in this topic, start recording
 	global startRecord 
 	startRecord = True
 
@@ -57,9 +54,9 @@ def record():
 	# create listener
 	inp = alsaaudio.PCM(type=alsaaudio.PCM_CAPTURE, device=DEVICE)
 	inp.setchannels(1)
-	inp.setrate(22050)
+	inp.setrate(8000)
 	inp.setformat(alsaaudio.PCM_FORMAT_S16_LE)
-	inp.setperiodsize(1024)
+	inp.setperiodsize(100)
 
 	w = wave.open(path, 'w')
 	w.setnchannels(1)
@@ -95,7 +92,7 @@ if __name__ == '__main__':
 			record()
 
 
-		rospy.sleep(1.0)
+		rospy.sleep(0.001)
 
 
 
