@@ -57,14 +57,14 @@ def record():
 	# create listener
 	inp = alsaaudio.PCM(type=alsaaudio.PCM_CAPTURE, device=DEVICE)
 	inp.setchannels(1)
-	inp.setrate(44100)
+	inp.setrate(22050)
 	inp.setformat(alsaaudio.PCM_FORMAT_S16_LE)
 	inp.setperiodsize(1024)
 
 	w = wave.open(path, 'w')
 	w.setnchannels(1)
 	w.setsampwidth(2)
-	w.setframerate(44100)
+	w.setframerate(88200)
 
 	while startRecord == True:
 		l, data = inp.read()
