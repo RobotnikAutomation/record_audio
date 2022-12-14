@@ -26,9 +26,9 @@ You can change the Id of your device(s) in the launch file (record_launch.launch
 ```bash
 roslaunch record_launch.launch identity:="folderName"
 ```
-The default format extension is mp3, but you can change it in the launch file with the parameter ```format```.
+The default ```format``` extension is mp3, but you can change it in the launch file with the parameter ```format```.
 
-The default microphone_rate is 8000 Hz, but it can be changed for the specific value of the specific microphone used. This can be done by changing the parameter ```microphone_rate```.
+The default ```microphone_rate``` is 8000 Hz, but it can be changed for the specific value of the specific microphone used. This can be done by changing the parameter ```microphone_rate```.
 
 To check your microphone rate you can do the following command in the terminal:
 
