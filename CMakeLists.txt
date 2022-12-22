@@ -4,6 +4,7 @@ project(record_audio)
 find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
+  robotnik_msgs
 )
 
 catkin_package(
