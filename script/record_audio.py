@@ -9,6 +9,7 @@ description: Node used to record sound from a device using a rospy node. Work wi
 '''
 
 import os, rospy, datetime, alsaaudio, wave, numpy
+import shutil
 from os.path import expanduser
 from std_msgs.msg import String
 from std_srvs.srv import Trigger, TriggerResponse
@@ -24,7 +25,14 @@ def callBackRecordService(request):
 	global inp
 	global wave_interface
 	response = RecordResponse()
+ 
+	disk_capacity, disk_usage, free_disk_space = shutil.disk_usage(folder_path)
+	
 	if (request.action.upper() == request.ACTION_RECORD):
+		if (disk_usage * 100 / disk_capacity) >= max_disk_usage:
+			response.success = False
+			response.message = "Insufficient disk space to start recording"
+			return response
 		if(action == "Idle"):
 			date = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
 			
@@ -61,6 +69,9 @@ def callBackRecordService(request):
 			time_start_record = rospy.Time.now()
 			rospy.loginfo("Starting recording")
 			action="Recording"
+			response.success = True
+			response.message = "Recording started successfully"
+			return response
 		else:
 			response.success = False
 			response.message = "The node is not in Idle state"
@@ -85,7 +96,26 @@ def callBackRecordService(request):
 def record():
 	global inp
 	global wave_interface
+	global estimated_compressed_audio_size_bytes
+	global action
+	global disk_capacity
+	global disk_usage
+	global free_disk_space
+
+ 
+	disk_capacity, disk_usage, free_disk_space = shutil.disk_usage(folder_path)
+	
 	l, data = inp.read()
+	estimated_raw_audio_size = l * 2
+	estimated_compressed_audio_size_bytes = estimated_raw_audio_size / compression_ratio
+	theoretical_remaining_space_percentage = (free_disk_space - estimated_compressed_audio_size_bytes) * 100 / disk_capacity
+	rospy.loginfo("Theoretical remaining space percentage: " + str(theoretical_remaining_space_percentage))
+	if (100 - theoretical_remaining_space_percentage) >= max_disk_usage_recording:
+		a = numpy.fromstring(data, dtype='int16')
+		wave_interface.writeframes(data)
+		action = "Idle"
+		rospy.loginfo("Disk space is running out. Stopping and saving recording")
+	 
 	a = numpy.fromstring(data, dtype='int16')
 	wave_interface.writeframes(data)
 
@@ -103,7 +133,18 @@ if __name__ == '__main__':
 	global inp
 	global wave_interface
 	global time_start_record
-
+	global disk_capacity 
+	global disk_usage 
+	global break_recording
+	global free_disk_space
+	global wav_header_size 
+	global compression_ratio
+	global max_disk_usage_recording
+	global max_disk_usage
+	
+	max_disk_usage = rospy.get_param('~max_disk_usage' , 85.)
+	max_disk_usage_recording = rospy.get_param('~max_disk_usage_recording', 90.)
+	wav_header_size = 44
 	max_time_record = 0
 	folder_path = ""
 	file_name = ""
@@ -115,6 +156,14 @@ if __name__ == '__main__':
 	inp = None
 	wave_interface = None
 	time_start_record = None
+	if file_format == "mp3":
+		compression_ratio = 11
+	elif file_format == "wav":
+		compression_ratio = 1
+ 
+	disk_capacity = 0.
+	disk_usage = 0.
+	free_disk_space = 0.
 
 	# get params name
 	device = rospy.get_param('~device', device)
