@@ -4,4 +4,4 @@ format: $(arg format)
 microphone_rate: $(arg microphone_rate)
 
 max_disk_usage: 85
-max_disk_usage_recording: 15
+max_disk_usage_recording: 90
