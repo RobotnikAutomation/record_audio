@@ -109,7 +109,7 @@ def record():
 	estimated_raw_audio_size = l * 2
 	estimated_compressed_audio_size_bytes = estimated_raw_audio_size / compression_ratio
 	theoretical_remaining_space_percentage = (free_disk_space - estimated_compressed_audio_size_bytes) * 100 / disk_capacity
-	rospy.loginfo("Theoretical remaining space percentage: " + str(theoretical_remaining_space_percentage))
+	
 	if (100 - theoretical_remaining_space_percentage) >= max_disk_usage_recording:
 		a = numpy.fromstring(data, dtype='int16')
 		wave_interface.writeframes(data)
