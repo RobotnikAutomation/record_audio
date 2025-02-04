@@ -6,10 +6,7 @@
   <arg name="microphone_rate" default="96000"/>
 
   <node pkg="record_audio" type="record_audio.py" name="record_audio" output="screen">
-    <param name="device" value="$(arg device)" />
-    <param name="folder_path" value="$(arg folder_path)"/>
-    <param name="format" value="$(arg format)"/>
-    <param name="microphone_rate" value="$(arg microphone_rate)"/>
+    <rosparam command="load" file="$(find record_audio)/config/default.yaml" subst_value="true"/>
   </node>
 
 </launch>

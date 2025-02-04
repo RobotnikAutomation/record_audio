@@ -9,12 +9,31 @@ description: Node used to record sound from a device using a rospy node. Work wi
 '''
 
 import os, rospy, datetime, alsaaudio, wave, numpy
+import shutil
 from os.path import expanduser
 from std_msgs.msg import String
 from std_srvs.srv import Trigger, TriggerResponse
 from robotnik_msgs.msg import RecordStatus
 from robotnik_msgs.srv import Record, RecordResponse
 
+# Auxiliary functions
+#
+def _safe_get_param(param_name, default_value):
+    if rospy.has_param(param_name):
+        return rospy.get_param(param_name)
+    else:
+        rospy.logwarn(f"Parameter '{param_name}' not found in param server. Using default value: {default_value}")
+        return default_value
+
+def _clamp(name, value, min_value, max_value):
+    if value < min_value:
+        rospy.logwarn(f"Paremeter '{name}' with value {value} is lower than the minimum value allowed: {min_value}. Setting it to the minimum value.")
+        return min_value
+    elif value > max_value:
+        rospy.logwarn(f"Paremeter '{name}' with value {value} is higher than the maximum value allowed: {max_value}. Setting it to the maximum value.")
+        return max_value
+    else:
+        return value
 
 def callBackRecordService(request):
 	global action
@@ -24,7 +43,14 @@ def callBackRecordService(request):
 	global inp
 	global wave_interface
 	response = RecordResponse()
+ 
+	disk_total, disk_usage, _ = shutil.disk_usage(folder_path)
+	
 	if (request.action.upper() == request.ACTION_RECORD):
+		if (disk_usage * 100 / disk_total) >= max_disk_usage:
+			response.success = False
+			response.message = "Insufficient disk space to start recording"
+			return response
 		if(action == "Idle"):
 			date = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
 			
@@ -61,6 +87,9 @@ def callBackRecordService(request):
 			time_start_record = rospy.Time.now()
 			rospy.loginfo("Starting recording")
 			action="Recording"
+			response.success = True
+			response.message = "Recording started successfully"
+			return response
 		else:
 			response.success = False
 			response.message = "The node is not in Idle state"
@@ -85,7 +114,22 @@ def callBackRecordService(request):
 def record():
 	global inp
 	global wave_interface
+	global estimated_compressed_audio_size_bytes
+	global action
+
+	disk_total, _, disk_free = shutil.disk_usage(folder_path)
+	
 	l, data = inp.read()
+	estimated_raw_audio_size = l * 2
+	estimated_compressed_audio_size_bytes = estimated_raw_audio_size / compression_ratio
+	theoretical_remaining_space_percentage = (disk_free - estimated_compressed_audio_size_bytes) * 100 / disk_total
+	
+	if (100 - theoretical_remaining_space_percentage) >= max_disk_usage_recording:
+		a = numpy.fromstring(data, dtype='int16')
+		wave_interface.writeframes(data)
+		action = "Idle"
+		rospy.logwarn("Disk space is running out. Stopping and saving recording")
+	 
 	a = numpy.fromstring(data, dtype='int16')
 	wave_interface.writeframes(data)
 
@@ -103,7 +147,14 @@ if __name__ == '__main__':
 	global inp
 	global wave_interface
 	global time_start_record
+	global break_recording
+	global wav_header_size 
+	global compression_ratio
+	global max_disk_usage_recording
+	global max_disk_usage
 
+	# Variables
+	wav_header_size = 44
 	max_time_record = 0
 	folder_path = ""
 	file_name = ""
@@ -115,6 +166,16 @@ if __name__ == '__main__':
 	inp = None
 	wave_interface = None
 	time_start_record = None
+	if file_format == "mp3":
+		compression_ratio = 11
+	elif file_format == "wav":
+		compression_ratio = 1
+ 
+	# Get parameters
+	max_disk_usage = _safe_get_param('~max_disk_usage', 85.)
+	max_disk_usage_recording = _safe_get_param('~max_disk_usage_recording', 90.)
+	_clamp('max_disk_usage', max_disk_usage, 0., 100.)
+	_clamp('max_disk_usage_recording', max_disk_usage_recording, 0., 100.)
 
 	# get params name
 	device = rospy.get_param('~device', device)
@@ -146,7 +207,7 @@ if __name__ == '__main__':
 			record_state.recording = True
 			record_state.state_description += " " + str(int(seconds_diff.to_sec())) + " seg."
 			record_state.recording_time = int(seconds_diff.to_sec())
-			rospy.loginfo(record_state.state_description)
+			rospy.loginfo_throttle(1, "Recording time: " + str(int(seconds_diff.to_sec())) + " seg.")
 		else:
 			record_state.state_description = action
 			record_state.recording = False
