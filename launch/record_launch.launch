@@ -4,12 +4,11 @@
   <arg name="folder_path" default="$(env HOME)/record"/>
   <arg name="format" default="mp3"/>
   <arg name="microphone_rate" default="96000"/>
+  <arg name="max_disk_usage_at_start" value="$(optenv MAX_DISK_USAGE_AT_START 80)"/>
+  <arg name="max_disk_usage_limit" value="$(optenv MAX_DISK_USAGE_LIMIT 90)"/>
 
   <node pkg="record_audio" type="record_audio.py" name="record_audio" output="screen">
-    <param name="device" value="$(arg device)" />
-    <param name="folder_path" value="$(arg folder_path)"/>
-    <param name="format" value="$(arg format)"/>
-    <param name="microphone_rate" value="$(arg microphone_rate)"/>
+    <rosparam command="load" file="$(find record_audio)/config/default.yaml" subst_value="true"/>
   </node>
 
 </launch>

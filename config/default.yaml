@@ -1,0 +1,7 @@
+device: $(arg device) 
+folder_path: $(arg folder_path)
+format: $(arg format)
+microphone_rate: $(arg microphone_rate)
+
+max_disk_usage_at_start: $(arg max_disk_usage_at_start)
+max_disk_usage_limit: $(arg max_disk_usage_limit)
