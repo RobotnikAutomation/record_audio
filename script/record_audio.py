@@ -70,11 +70,8 @@ def callBackRecordService(request):
 			
 			try:
 				
-				inp = alsaaudio.PCM(type=alsaaudio.PCM_CAPTURE, device=device)
-				inp.setchannels(1)
-				inp.setrate(microphone_rate)
-				inp.setformat(alsaaudio.PCM_FORMAT_S16_LE)
-				inp.setperiodsize(1024)
+				inp = alsaaudio.PCM(type=alsaaudio.PCM_CAPTURE, device=device, channels=1,
+									rate=microphone_rate, format=alsaaudio.PCM_FORMAT_S16_LE, periodsize=1024)
 
 				wave_interface = wave.open(folder_path+"/"+file_name, 'w')
 				wave_interface.setnchannels(1)
@@ -125,12 +122,12 @@ def record():
 	theoretical_remaining_space_percentage = (disk_free - estimated_compressed_audio_size_bytes) * 100 / disk_total
 	
 	if (100 - theoretical_remaining_space_percentage) >= max_disk_usage_limit:
-		a = numpy.fromstring(data, dtype='int16')
+		# a = numpy.fromstring(data, dtype='int16')
 		wave_interface.writeframes(data)
 		action = "Idle"
 		rospy.logwarn("Disk space is running out. Stopping and saving recording")
 	 
-	a = numpy.fromstring(data, dtype='int16')
+	# a = numpy.fromstring(data, dtype='int16')
 	wave_interface.writeframes(data)
 
 if __name__ == '__main__':
