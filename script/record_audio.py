@@ -47,7 +47,7 @@ def callBackRecordService(request):
 	disk_total, disk_usage, _ = shutil.disk_usage(folder_path)
 	
 	if (request.action.upper() == request.ACTION_RECORD):
-		if (disk_usage * 100 / disk_total) >= max_disk_usage:
+		if (disk_usage * 100 / disk_total) >= max_disk_usage_at_start:
 			response.success = False
 			response.message = "Insufficient disk space to start recording"
 			return response
@@ -124,7 +124,7 @@ def record():
 	estimated_compressed_audio_size_bytes = estimated_raw_audio_size / compression_ratio
 	theoretical_remaining_space_percentage = (disk_free - estimated_compressed_audio_size_bytes) * 100 / disk_total
 	
-	if (100 - theoretical_remaining_space_percentage) >= max_disk_usage_recording:
+	if (100 - theoretical_remaining_space_percentage) >= max_disk_usage_limit:
 		a = numpy.fromstring(data, dtype='int16')
 		wave_interface.writeframes(data)
 		action = "Idle"
@@ -150,8 +150,8 @@ if __name__ == '__main__':
 	global break_recording
 	global wav_header_size 
 	global compression_ratio
-	global max_disk_usage_recording
-	global max_disk_usage
+	global max_disk_usage_limit
+	global max_disk_usage_at_start
 
 	# Variables
 	wav_header_size = 44
@@ -172,10 +172,10 @@ if __name__ == '__main__':
 		compression_ratio = 1
  
 	# Get parameters
-	max_disk_usage = _safe_get_param('~max_disk_usage', 85.)
-	max_disk_usage_recording = _safe_get_param('~max_disk_usage_recording', 90.)
-	_clamp('max_disk_usage', max_disk_usage, 0., 100.)
-	_clamp('max_disk_usage_recording', max_disk_usage_recording, 0., 100.)
+	max_disk_usage_at_start = _safe_get_param('~max_disk_usage_at_start', 85.)
+	max_disk_usage_limit = _safe_get_param('~max_disk_usage_limit', 90.)
+	_clamp('max_disk_usage_at_start', max_disk_usage_at_start, 0., 100.)
+	_clamp('max_disk_usage_limit', max_disk_usage_limit, 0., 100.)
 
 	# get params name
 	device = rospy.get_param('~device', device)
